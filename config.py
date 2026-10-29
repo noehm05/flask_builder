@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from flask_appbuilder.security.manager import (
     AUTH_REMOTE_USER,
     AUTH_DB,
@@ -7,12 +8,12 @@ from flask_appbuilder.security.manager import (
 )
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-
+load_dotenv(os.path.join(basedir,".env"))
 # Your App secret key
 SECRET_KEY = "012345678901234567890"
 
 # The SQLAlchemy connection string.
-#SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
+# SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "app.db")
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost:3306/reposteria_db'
 # SQLALCHEMY_DATABASE_URI = 'postgresql://root:password@localhost/myapp'
 

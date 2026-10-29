@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integración con IA</title>
+</head>
+<body>
+    <h1>Asistente de repostería con IA</h1>
+
+    <div id="chat"></div>
+
+    <form id="form">
+        <input
+            type="text"
+            id="mensaje"
+            placeholder="Escriba algún mensaje"
+            autocomplete="off"
+            required
+        >
+
+        <button id="enviar" type="submit">
+            Enviar pregunta
+        </button>
+    </form>
+
+    <script>
+        const formulario = document.getElementById("form");
+        const input = document.getElementById("mensaje");
+        const chat = document.getElementById("chat");
+        const button = document.getElementById("enviar");
+
+        const historico = [];
+
+        function mostrarMensaje(autor, texto) {
+            const mensaje = document.createElement("p");
+            const titulo = document.createElement("strong");
+            titulo.textContent = autor + ": ";
+            mensaje.appendChild(titulo);
+            mensaje.appendChild(document.createTextNode(texto));
+            chat.appendChild(mensaje);
+            return mensaje;
+        }
+
+        formulario.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const mensaje = input.value.trim();
+            if (!mensaje) {
+                return;
+            }
+            const historialMensajes = [...historico];
+            mostrarMensaje("Tú", mensaje);
+            historico.push({
+                role: "user",
+                content: mensaje
+            });
+            input.value = "";
+            button.disabled = true;
+            const loading = mostrarMensaje(
+                "IA",
+                "Esperando respuesta de la IA..."
+            );
+            try {
+                const response = await fetch("/api/asistente", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: mensaje,
+                        history: historialMensajes
+                    })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Error al consultar el servidor."
+                    );
+                }
+                const respuestaIA = data.respuesta;
+
+                if (!respuestaIA) {
+                    throw new Error(
+                        "El servidor no devolvió una respuesta válida."
+                    );
+                }
+                loading.remove();
+                mostrarMensaje("IA", respuestaIA);
+
+                historico.push({
+                    role: "assistant",
+                    content: respuestaIA
+                });
+
+            } catch (error) {
+                loading.remove();
+
+                mostrarMensaje(
+                    "Error",
+                    error.message || "No se pudo conectar con el servidor."
+                );
+
+                console.error("Error del asistente:", error);
+
+            } finally {
+                button.disabled = false;
+                input.focus();
+            }
+        });
+    </script>
+</body>
+</html>
